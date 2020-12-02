@@ -1,2 +1,2 @@
 default:
-	gcc main.c -o fpl
+	gcc vec.c main.c -o fpl
