@@ -7,7 +7,7 @@ int main(void) {
 	for (int i = 0; i < tokens.length; i++) {
 		struct token t = tokens.data[i];
 		printf("Token{ .kind = '%s', .text = '%s', .line = %lu, .col_start = %lu, .col_end = %lu }\n",
-			t.kind, t.text, t.line, t.col_start, t.col_end);
+			token_kind_str(t.kind), t.text, t.line, t.col_start, t.col_end);
 	}
 	return 0;
 }
