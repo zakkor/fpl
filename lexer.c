@@ -3,7 +3,7 @@
 
 #include "lexer.h"
 
-#define LINE_SIZE 256
+#define LINE_SIZE 512
 
 enum search_kind {
   nothing,
@@ -11,19 +11,20 @@ enum search_kind {
   number
 };
 
-vec_token_t lex(char *path) {
+vec_token lex(char *path) {
 	FILE* fp = fopen(path, "r");
-	vec_token_t tokens;
+	vec_token tokens;
 	vec_init(&tokens);
 
-	char buf[LINE_SIZE];
-	while (fgets(buf, LINE_SIZE, fp)) {
-    enum search_kind searching = nothing;
-    vec_char_t chunk;
-		vec_init(&chunk);
+	char line[LINE_SIZE];
+  enum search_kind searching = nothing;
+  vec_char_t chunk;
+  vec_init(&chunk);
+	for (int i = 0; fgets(line, LINE_SIZE, fp); i++) {
+    int col_start = -1;
 
-		for (int i = 0; i <= strlen(buf); i++) {
-			if (buf[i] == ' ' || buf[i] == '\n') {
+		for (int j = 0; j <= strlen(line); j++) {
+			if (line[j] == ' ' || line[j] == '\n') {
         int add = 0;
         char *kind;
 				if (searching == word) {
@@ -41,26 +42,40 @@ vec_token_t lex(char *path) {
         struct token t = {
           .kind = kind,
           // TODO: Need to free this:
-          .text = malloc(strlen(chunk.data))
+          .text = malloc(strlen(chunk.data)+1),
+          .line = i+1,
+          .col_start = col_start,
+          .col_end = j+1
         };
-        strncpy(t.text, chunk.data, strlen(chunk.data));
+        strncpy(t.text, chunk.data, strlen(chunk.data)+1);
         vec_push(&tokens, t);
 
         // Reset search.
         vec_clear(&chunk);
+        vec_compact(&chunk);
         searching = nothing;
-			} else if (buf[i] == '=') {
+			} else if (line[j] == '=') {
 				struct token t = {
 					.kind = "Assign",
-					.text = "="
+					.text = "=",
+          .line = i+1,
+          .col_start = col_start,
+          .col_end = j+1
 				};
 				vec_push(&tokens, t);
-			} else if (buf[i] >= 'a' && buf[i] <= 'z') {
-        searching = word;
-				vec_push(&chunk, buf[i]);
-			} else if (buf[i] >= '0' && buf[i] <= '9') {
-        searching = number;
-				vec_push(&chunk, buf[i]);
+			} else if (line[j] >= 'a' && line[j] <= 'z') {
+        if (searching == nothing) {
+          searching = word;
+          col_start = j;
+        }
+				vec_push(&chunk, line[j]);
+			} else if (line[j] >= '0' && line[j] <= '9') {
+        if (searching == nothing) {
+          searching = number;
+          col_start = j;
+        }
+        col_start = j;
+				vec_push(&chunk, line[j]);
 			}
 		}
 	}
