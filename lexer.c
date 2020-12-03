@@ -28,31 +28,22 @@ vec_token lex(char *path) {
 				if (searching == search_nothing)
           continue;
 
+        // TODO: Need to free this:
+        char* text = malloc(strlen(chunk.data)+1);
+        strncpy(text, chunk.data, strlen(chunk.data)+1);
         // Add new token with text gathered so far.
-        struct token t = {
-          .kind = (enum token_kind)searching,
-          // TODO: Need to free this:
-          .text = malloc(strlen(chunk.data)+1),
-          .line = i+1,
-          .col_start = col_start,
-          .col_end = j+1
-        };
-        strncpy(t.text, chunk.data, strlen(chunk.data)+1);
-        vec_push(&tokens, t);
+        token_add(&tokens, (enum token_kind)searching, text, i+1, col_start, j+2);
 
         // Reset search.
         vec_clear(&chunk);
         vec_compact(&chunk);
         searching = search_nothing;
-			} else if (line[j] == '=') {
-				struct token t = {
-					.kind = token_assignment,
-					.text = "=",
-          .line = i+1,
-          .col_start = col_start,
-          .col_end = j+1
-				};
-				vec_push(&tokens, t);
+			} else if (line[j] == '{') {
+        token_add_singlechar(&tokens, token_leftbrace, "{", i+1, j+1);
+      } else if (line[j] == '}') {
+        token_add_singlechar(&tokens, token_rightbrace, "}", i+1, j+1);
+      } else if (line[j] == '=') {
+        token_add_singlechar(&tokens, token_assignment, "=", i+1, j+1);
 			} else if (line[j] >= 'a' && line[j] <= 'z') {
         if (searching == search_nothing) {
           searching = search_identifier;
@@ -70,8 +61,30 @@ vec_token lex(char *path) {
 		}
 	}
 	fclose(fp);
-
 	return tokens;
+}
+
+
+void token_add(vec_token* vec, enum token_kind kind, char* text, int line, int col_start, int col_end) {
+  struct token t = {
+    .kind = kind,
+    .text = text,
+    .line = line,
+    .col_start = col_start,
+    .col_end = col_end
+  };
+  vec_push(vec, t);
+}
+
+void token_add_singlechar(vec_token* vec, enum token_kind kind, char* text, int line, int col) {
+  struct token t = {
+    .kind = kind,
+    .text = text,
+    .line = line,
+    .col_start = col,
+    .col_end = col+1
+  };
+  vec_push(vec, t);
 }
 
 char* token_kind_str(enum token_kind k) {
@@ -82,5 +95,9 @@ char* token_kind_str(enum token_kind k) {
     return "Number";
   case token_assignment:
     return "Assignment";
+  case token_leftbrace:
+    return "LeftBrace";
+  case token_rightbrace:
+    return "RightBrace";
   }
 }

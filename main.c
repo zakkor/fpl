@@ -2,8 +2,8 @@
 
 #include "lexer.h"
 
-int main(void) {
-	vec_token tokens = lex("assignment.fpl");
+int main(int argc, char** argv) {
+	vec_token tokens = lex(argv[1]);
 	for (int i = 0; i < tokens.length; i++) {
 		struct token t = tokens.data[i];
 		printf("Token{ .kind = '%s', .text = '%s', .line = %lu, .col_start = %lu, .col_end = %lu }\n",
