@@ -77,14 +77,7 @@ void token_add(vec_token* vec, enum token_kind kind, char* text, int line, int c
 }
 
 void token_add_singlechar(vec_token* vec, enum token_kind kind, char* text, int line, int col) {
-  struct token t = {
-    .kind = kind,
-    .text = text,
-    .line = line,
-    .col_start = col,
-    .col_end = col+1
-  };
-  vec_push(vec, t);
+  token_add(vec, kind, text, line, col, col+1);
 }
 
 char* token_kind_str(enum token_kind k) {
