@@ -3,17 +3,17 @@
 #include "vec.h"
 
 enum token_kind {
-  token_identifier,
-  token_number,
-  token_assignment,
-  token_leftbrace,
-  token_rightbrace
+	token_identifier,
+	token_number,
+	token_assignment,
+	token_leftbrace,
+	token_rightbrace
 };
 
 struct token {
 	enum token_kind kind;
 	char* text;
-  uint32_t line, col_start, col_end;
+	uint32_t line, col_start, col_end;
 };
 
 typedef vec_t(struct token) vec_token;
